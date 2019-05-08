@@ -1,3 +1,27 @@
+## Hasil dari Route Get dengan Relasi Embedded
+Klik Branch embedded_relationships untuk melihat code
+
+```
+{
+	"artistname" : "Reza Shahab",
+	"band_members" :
+	[
+		{
+			"singer_name" :  "l",
+			"instruments" : ["Gitar", "Bass"]
+		},
+		{
+			"singer_name" :  "Kevin A",
+			"instruments" : ["Piano"]
+		},
+		{
+			"singer_name" :  "Botak",
+			"instruments" : ["Drum", "Klarinet"]
+		}
+	]
+}
+```
+
 ## Hasil dari Route Get dengan Relasi Document Referenced
 
 ```
