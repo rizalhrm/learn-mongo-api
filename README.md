@@ -1,5 +1,5 @@
 ## Hasil dari Route Get dengan Relasi Embedded
-Klik Branch Embedded
+Klik Branch embedded_relationships untuk melihat code
 
 ```
 {
