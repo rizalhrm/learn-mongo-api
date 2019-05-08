@@ -1,15 +1,22 @@
 const express = require('express');
 const bodyParser = require("body-parser");
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 const assert = require('assert');
 const db = require("./db");
 const collection = "singers";
 const app = express();
 
 // schema used for data validation for our document
+const instruments = Joi.string()
+
+const band_members = Joi.object().keys({
+    singer_name: Joi.string(),
+    instruments: Joi.array().items(instruments)
+})
+
 const schema = Joi.object().keys({
-    id: Joi.number().integer().required().min(1).max(1000),
-    artistname : Joi.string().required()
+    artistname : Joi.string().required(),
+    band_members: Joi.array().items(band_members)
 });
 
 // parses json data sent to us by the user 
@@ -24,66 +31,31 @@ app.get('/',(res)=>{
 app.get('/singers',(req,res)=>{
     // get all documents within our collection
     // send back to user as json
-    db.getDB().collection(collection).aggregate(
-        [ { "$lookup": 
-              {
-                  "from": "instruments",
-                  "localField" : "id",
-                  "foreignField": "artist_id",
-                  "as": "band_members"
-              }
-          }
-        ],
-        (err, cursor) => {
-          assert.equal(err, null);
-  
-          cursor.toArray(function(err, results) {
-            if (err) {
-                res.status(400).send({'error': err})
-            }
-            if (results === undefined || results.length === 0) {
-                res.status(400).send({'error':'No documents in database'})
-            } else {
-                res.status(200).send(results)
-            }
-          });
+    db.getDB().collection(collection).find({}).toArray((err,results)=>{
+        if (err) {
+            res.status(400).send({'error': err})
         }
-    );
+        if (results === undefined || results.length === 0) {
+            res.status(400).send({'error':'No documents in database'})
+        } else {
+            res.status(200).send(results)
+        }
+    })
 });
 
 // get by Id
 app.get('/singer/:id', (req, res) => {
     let id = req.params.id
-    db.getDB().collection(collection).aggregate(
-        [ { "$lookup": 
-              {
-                  "from": "instruments",
-                  "localField" : "id",
-                  "foreignField": "artist_id",
-                  "as": "band_members"
-              }
-          },
-          { "$match" : 
-              { 
-                  "_id" : db.getPrimaryKey(id)
-              } 
-          }
-        ],
-        (err, cursor) => {
-          assert.equal(err, null);
-  
-          cursor.toArray(function(err, result) {
-            if (err) {
-                res.status(400).send({'error': err})
-            }
-            if (result === undefined) {
-                res.status(400).send({'error':'No documents in database'})
-            } else {
-                res.status(200).send(result)
-            }
-          });
+    db.getDB().collection(collection).findOne({'_id': db.getPrimaryKey(id)}, (err, result) => {
+        if (err) {
+            res.status(400).send({'error': err})
         }
-    );
+        if (result === undefined) {
+            res.status(400).send({'error':'No documents in database'})
+        } else {
+            res.status(200).send(result)
+        }
+    })
 })
 
 //create
@@ -96,9 +68,7 @@ app.post('/singer',(req,res,next)=>{
     // else insert document within collection
     Joi.validate(userInput,schema,(err,result)=>{
         if(err){
-            const error = new Error("Invalid Input");
-            error.status = 400;
-            next(error);
+            res.status(400).send(err)
         }
         else{
             db.getDB().collection(collection).insertOne(userInput,(err,result)=>{
@@ -121,7 +91,7 @@ app.put('/singer/:id',(req,res)=>{
     // Document used to update
     const userInput = req.body;
     // Find Document By ID and Update
-    db.getDB().collection(collection).findOneAndUpdate({_id : db.getPrimaryKey(id)},{$set : {id : userInput.id, artistname : userInput.artistname}},{returnOriginal : false},(err,result)=>{
+    db.getDB().collection(collection).findOneAndUpdate({_id : db.getPrimaryKey(id)},{$set : {artistname : userInput.artistname, band_members: userInput.band_members}},{returnOriginal : false},(err,result)=>{
         if (err) {
             res.status(400).send({'error': err})
         }
