@@ -85,13 +85,13 @@ app.post('/singer',(req,res,next)=>{
 });
 
 // update
-app.put('/singer/:id',(req,res)=>{
+app.patch('/singer/:id',(req,res)=>{
     // Primary Key of Document we wish to update
     const id = req.params.id;
     // Document used to update
     const userInput = req.body;
     // Find Document By ID and Update
-    db.getDB().collection(collection).findOneAndUpdate({_id : db.getPrimaryKey(id)},{$set : {artistname : userInput.artistname, band_members: userInput.band_members}},{returnOriginal : false},(err,result)=>{
+    db.getDB().collection(collection).findOneAndUpdate({_id : db.getPrimaryKey(id)},{$set : userInput},{returnOriginal : false}, (err, result)=>{
         if (err) {
             res.status(400).send({'error': err})
         }
