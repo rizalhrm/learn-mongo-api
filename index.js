@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require("body-parser");
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 const assert = require('assert');
 const db = require("./db");
 const collection = "singers";
@@ -108,20 +108,20 @@ app.post('/singer',(req,res,next)=>{
                     next(error);
                 }
                 else
-                    res.status(200).send({result : result, document : result.ops[0],msg : "Successfully inserted Data!!!",error : null});
+                    res.status(200).send({result : result, document : result.ops[0], msg : "Successfully inserted Data!!!",error : null});
             });
         }
     })    
 });
 
 // update
-app.put('/singer/:id',(req,res)=>{
+app.patch('/singer/:id',(req,res)=>{
     // Primary Key of Document we wish to update
     const id = req.params.id;
     // Document used to update
     const userInput = req.body;
     // Find Document By ID and Update
-    db.getDB().collection(collection).findOneAndUpdate({_id : db.getPrimaryKey(id)},{$set : {id : userInput.id, artistname : userInput.artistname}},{returnOriginal : false},(err,result)=>{
+    db.getDB().collection(collection).findOneAndUpdate({_id : db.getPrimaryKey(id)},{$set : userInput},{returnOriginal : false},(err,result)=>{
         if (err) {
             res.status(400).send({'error': err})
         }
